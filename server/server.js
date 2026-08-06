@@ -1,20 +1,30 @@
-import express from 'express'
-import cors from 'cors'
-import dotenv from 'dotenv'
+const express = require('express');
+const cors = require('cors');
+require('dotenv').config();
 
-dotenv.config()
+const app = express();
+const db = require('./models');
 
-const app = express()
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.use(cors())
-app.use(express.json())
+// Routes
+app.use('/api/auth', require('./routes/auth.routes'));
 
-const PORT = process.env.PORT || 5000
+// Database sync
+db.sequelize
+  .sync({ alter: true }) // alter: true updates table structure if model changes
+  .then(() => {
+    console.log('Database synced successfully');
+  })
+  .catch((err) => {
+    console.error('Database sync error:', err);
+  });
 
-app.get('/', (req, res) => {
-  res.send('Doctor Appointment API is running')
-})
-
+// Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`)
-})
+  console.log(`Server running on http://localhost:${PORT}`);
+});
