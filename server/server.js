@@ -12,6 +12,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/profile', require('./routes/profile.routes'));
 
 // Database sync
 db.sequelize
