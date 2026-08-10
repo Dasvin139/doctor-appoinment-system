@@ -1,17 +1,22 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { User } = require('../models');
+const { User, DoctorProfile } = require('../models'); 
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 const JWT_EXPIRE = '7d';
 
 const crypto = require('crypto');
+
 // REGISTER
+
 exports.register = async (req, res) => {
   try {
-    const { email, password, firstName, lastName, role, phone } = req.body;
+    const {
+      email, password, firstName, lastName, role, phone,
+      // doctor-specific fields (optional in body)
+      specialization, qualification, experienceYears, consultationFee, bio,
+    } = req.body;
 
-    // Validation
     if (!email || !password || !role) {
       return res.status(400).json({
         success: false,
@@ -19,7 +24,6 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Check valid role
     const validRoles = ['customer', 'doctor', 'clinic', 'super_admin'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({
@@ -28,7 +32,14 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Check if user already exists
+    // Doctor-specific validation
+    if (role === 'doctor' && !specialization) {
+      return res.status(400).json({
+        success: false,
+        message: 'Specialization is required for doctor registration',
+      });
+    }
+
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       return res.status(409).json({
@@ -37,10 +48,8 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const newUser = await User.create({
       email,
       password: hashedPassword,
@@ -50,7 +59,18 @@ exports.register = async (req, res) => {
       role,
     });
 
-    // Return user data (WITHOUT password)
+    // Create DoctorProfile if role is doctor
+    if (role === 'doctor') {
+      await DoctorProfile.create({
+        userId: newUser.id,
+        specialization,
+        qualification,
+        experienceYears: experienceYears || 0,
+        consultationFee,
+        bio,
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: 'User registered successfully',
@@ -71,7 +91,6 @@ exports.register = async (req, res) => {
     });
   }
 };
-
 // LOGIN
 exports.login = async (req, res) => {
   try {
