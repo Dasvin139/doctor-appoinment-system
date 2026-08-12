@@ -15,8 +15,8 @@ app.use('/api/auth', require('./routes/auth.routes'));
 app.use('/api/profile', require('./routes/profile.routes'));
 app.use('/api/doctors', require('./routes/doctor.routes'));
 app.use('/api/slots', require('./routes/slot.routes'));
-app.use('/api/admin', require('./routes/admin.routes'));      // ← ADDED
-// app.use('/api/appointments', require('./routes/appointment.routes')); // coming next
+app.use('/api/admin', require('./routes/admin.routes'));
+app.use('/api/appointments', require('./routes/appointment.routes')); // ← ADDED ✅
 
 
 // Health check
